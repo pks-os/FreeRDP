@@ -503,6 +503,8 @@ static BOOL drive_file_query_from_handle_information(const DRIVE_FILE* file,
 
 		default:
 			/* Unhandled FsInformationClass */
+			WLog_WARN(TAG, "Unhandled FSInformationClass %s [0x%08" PRIx32 "]",
+			          FSInformationClass2Tag(FsInformationClass), FsInformationClass);
 			return FALSE;
 	}
 
@@ -568,6 +570,8 @@ static BOOL drive_file_query_from_attributes(const DRIVE_FILE* file,
 
 		default:
 			/* Unhandled FsInformationClass */
+			WLog_WARN(TAG, "Unhandled FSInformationClass %s [0x%08" PRIx32 "]",
+			          FSInformationClass2Tag(FsInformationClass), FsInformationClass);
 			return FALSE;
 	}
 
@@ -582,6 +586,11 @@ BOOL drive_file_query_information(DRIVE_FILE* file, UINT32 FsInformationClass, w
 
 	if (!file || !output)
 		return FALSE;
+
+	if ((file->file_handle != INVALID_HANDLE_VALUE) &&
+	    GetFileInformationByHandle(file->file_handle, &fileInformation))
+		return drive_file_query_from_handle_information(file, &fileInformation, FsInformationClass,
+		                                                output);
 
 	hFile = CreateFileW(file->fullpath, 0, FILE_SHARE_DELETE, NULL, OPEN_EXISTING,
 	                    FILE_ATTRIBUTE_NORMAL, NULL);
@@ -822,6 +831,8 @@ BOOL drive_file_set_information(DRIVE_FILE* file, UINT32 FsInformationClass, UIN
 		break;
 
 		default:
+			WLog_WARN(TAG, "Unhandled FSInformationClass %s [0x%08" PRIx32 "]",
+			          FSInformationClass2Tag(FsInformationClass), FsInformationClass);
 			return FALSE;
 	}
 
@@ -1003,7 +1014,8 @@ BOOL drive_file_query_directory(DRIVE_FILE* file, UINT32 FsInformationClass, BYT
 			break;
 
 		default:
-			WLog_ERR(TAG, "unhandled FsInformationClass %" PRIu32, FsInformationClass);
+			WLog_WARN(TAG, "Unhandled FSInformationClass %s [0x%08" PRIx32 "]",
+			          FSInformationClass2Tag(FsInformationClass), FsInformationClass);
 			/* Unhandled FsInformationClass */
 			goto out_fail;
 	}

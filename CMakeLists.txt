@@ -27,6 +27,11 @@ project(FreeRDP LANGUAGES C)
 
 add_custom_target(fuzzers COMMENT "Build fuzzers")
 
+if(NOT PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+  # Git auto-ignore out-of-source build directory
+  file(GENERATE OUTPUT .gitignore CONTENT "*")
+endif()
+
 if(NOT DEFINED VENDOR)
   set(VENDOR "FreeRDP" CACHE STRING "FreeRDP package vendor")
 endif()
@@ -92,7 +97,7 @@ if($ENV{BUILD_NUMBER})
 endif()
 
 set(VERSION_REGEX "^(.*)([0-9]+)\\.([0-9]+)\\.([0-9]+)-?(.*)")
-set(RAW_VERSION_STRING "3.12.1-dev0")
+set(RAW_VERSION_STRING "3.14.1-dev0")
 if(EXISTS "${PROJECT_SOURCE_DIR}/.source_tag")
   file(READ ${PROJECT_SOURCE_DIR}/.source_tag RAW_VERSION_STRING)
 elseif(USE_VERSION_FROM_GIT_TAG)
@@ -156,6 +161,16 @@ endif()
 option(WITH_FREERDP_DEPRECATED "Build FreeRDP deprecated symbols" OFF)
 if(WITH_FREERDP_DEPRECATED)
   add_compile_definitions(WITH_FREERDP_DEPRECATED)
+endif()
+
+option(WITHOUT_FREERDP_3x_DEPRECATED "Build FreeRDP 3x deprecated symbols" OFF)
+if(WITH_FREERDP_3x_DEPRECATED)
+  message(WARNING "WITH_FREERDP_3x_DEPRECATED has been replaced with WITHOUT_FREERDP_3x_DEPRECATED")
+  set(WITHOUT_FREERDP_3x_DEPRECATED OFF)
+endif()
+
+if(WITHOUT_FREERDP_3x_DEPRECATED)
+  add_compile_definitions(WITHOUT_FREERDP_3x_DEPRECATED)
 endif()
 
 option(WITH_FREERDP_DEPRECATED_COMMANDLINE "Build FreeRDP deprecated command line options" OFF)
@@ -387,7 +402,9 @@ if(ANDROID)
   set(PCSC_FEATURE_TYPE "DISABLED")
 endif()
 
-find_feature(Wayland ${WAYLAND_FEATURE_TYPE} ${WAYLAND_FEATURE_PURPOSE} ${WAYLAND_FEATURE_DESCRIPTION})
+if(NOT WITHOUT_FREERDP_3x_DEPRECATED)
+  find_feature(Wayland ${WAYLAND_FEATURE_TYPE} ${WAYLAND_FEATURE_PURPOSE} ${WAYLAND_FEATURE_DESCRIPTION})
+endif()
 
 option(WITH_LIBRESSL "build with LibreSSL" OFF)
 if(WITH_LIBRESSL)
@@ -517,9 +534,12 @@ include(CommonConfigOptions)
 
 if(FREERDP_UNIFIED_BUILD)
   add_subdirectory(winpr)
-  if(WITH_WAYLAND)
-    add_subdirectory(uwac)
+  if(NOT WITHOUT_FREERDP_3x_DEPRECATED)
+    if(WITH_WAYLAND)
+      add_subdirectory(uwac)
+    endif()
   endif()
+
   if(WITH_SERVER)
     option(WITH_RDTK "build rdtk toolkit" ON)
     if(WITH_RDTK)

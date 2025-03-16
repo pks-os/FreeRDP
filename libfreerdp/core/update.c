@@ -2136,7 +2136,8 @@ static BOOL update_send_create_offscreen_bitmap_order(
 
 	const size_t em = Stream_GetPosition(s);
 	Stream_SetPosition(s, bm);
-	Stream_Write_UINT8(s, controlFlags); /* controlFlags (1 byte) */
+	Stream_Write_UINT8(s,
+	                   WINPR_ASSERTING_INT_CAST(uint8_t, controlFlags)); /* controlFlags (1 byte) */
 	Stream_SetPosition(s, em);
 	update->numberOrders++;
 	return TRUE;
@@ -2173,7 +2174,8 @@ static BOOL update_send_switch_surface_order(rdpContext* context,
 
 	const size_t em = Stream_GetPosition(s);
 	Stream_SetPosition(s, bm);
-	Stream_Write_UINT8(s, controlFlags); /* controlFlags (1 byte) */
+	Stream_Write_UINT8(s,
+	                   WINPR_ASSERTING_INT_CAST(uint8_t, controlFlags)); /* controlFlags (1 byte) */
 	Stream_SetPosition(s, em);
 	update->numberOrders++;
 	return TRUE;
@@ -2492,7 +2494,7 @@ static BOOL update_send_set_keyboard_ime_status(rdpContext* context, UINT16 imeI
 static UINT16 update_calculate_new_or_existing_window(const WINDOW_ORDER_INFO* orderInfo,
                                                       const WINDOW_STATE_ORDER* stateOrder)
 {
-	UINT16 orderSize = 11;
+	size_t orderSize = 11;
 
 	WINPR_ASSERT(orderInfo);
 	WINPR_ASSERT(stateOrder);
@@ -2537,13 +2539,20 @@ static UINT16 update_calculate_new_or_existing_window(const WINDOW_ORDER_INFO* o
 		orderSize += 8;
 
 	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_WND_RECTS) != 0)
-		orderSize += 2 + stateOrder->numWindowRects * sizeof(RECTANGLE_16);
+	{
+		const size_t len = 2ULL + stateOrder->numWindowRects * sizeof(RECTANGLE_16);
+		orderSize += len;
+	}
 
 	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_VIS_OFFSET) != 0)
 		orderSize += 8;
 
 	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_VISIBILITY) != 0)
-		orderSize += 2 + stateOrder->numVisibilityRects * sizeof(RECTANGLE_16);
+	{
+
+		const size_t len = 2ULL + stateOrder->numVisibilityRects * sizeof(RECTANGLE_16);
+		orderSize += len;
+	}
 
 	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_OVERLAY_DESCRIPTION) != 0)
 		orderSize += 2 + stateOrder->OverlayDescription.length;
@@ -2560,7 +2569,7 @@ static UINT16 update_calculate_new_or_existing_window(const WINDOW_ORDER_INFO* o
 	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_APPBAR_EDGE) != 0)
 		orderSize += 1;
 
-	return orderSize;
+	return WINPR_ASSERTING_INT_CAST(uint16_t, orderSize);
 }
 
 static BOOL update_write_order_field_flags(UINT32 fieldFlags, const WINDOW_STATE_ORDER* stateOrder,

@@ -1308,10 +1308,14 @@ BOOL rfx_process_message(RFX_CONTEXT* WINPR_RESTRICT context, const BYTE* WINPR_
 			WINPR_ASSERT(clippingRect.left + rect->width <= UINT16_MAX);
 			WINPR_ASSERT(clippingRect.top + rect->height <= UINT16_MAX);
 
-			clippingRect.left = (UINT16)MIN(left + rect->x, dstWidth);
-			clippingRect.top = (UINT16)MIN(top + rect->y, dstHeight);
-			clippingRect.right = (UINT16)MIN(clippingRect.left + rect->width, dstWidth);
-			clippingRect.bottom = (UINT16)MIN(clippingRect.top + rect->height, dstHeight);
+			const UINT32 rw = 1UL * clippingRect.left + rect->width;
+			const UINT32 rh = 1UL * clippingRect.top + rect->width;
+			const uint16_t right = WINPR_ASSERTING_INT_CAST(UINT16, MIN(rw, dstWidth));
+			const uint16_t bottom = WINPR_ASSERTING_INT_CAST(UINT16, MIN(rh, dstHeight));
+			clippingRect.left = WINPR_ASSERTING_INT_CAST(UINT16, MIN(left + rect->x, dstWidth));
+			clippingRect.top = WINPR_ASSERTING_INT_CAST(UINT16, MIN(top + rect->y, dstHeight));
+			clippingRect.right = right;
+			clippingRect.bottom = bottom;
 			region16_union_rect(&clippingRects, &clippingRects, &clippingRect);
 		}
 
@@ -1867,7 +1871,8 @@ skip_encoding_loop:
 			}
 
 			const RFX_TILE* tile = message->tiles[i];
-			message->tilesDataSize += rfx_tile_length(tile);
+			const size_t tlen = rfx_tile_length(tile);
+			message->tilesDataSize += WINPR_ASSERTING_INT_CAST(uint32_t, tlen);
 		}
 
 		region16_uninit(&tilesRegion);
@@ -1968,7 +1973,7 @@ static INLINE RFX_MESSAGE* rfx_split_message(RFX_CONTEXT* WINPR_RESTRICT context
 				goto free_messages;
 		}
 
-		msg->tilesDataSize += tileDataSize;
+		msg->tilesDataSize += WINPR_ASSERTING_INT_CAST(uint32_t, tileDataSize);
 
 		WINPR_ASSERT(msg->numTiles < msg->allocatedTiles);
 		msg->tiles[msg->numTiles++] = message->tiles[i];

@@ -724,7 +724,7 @@ static BOOL certificate_process_server_public_signature(rdpCertificate* certific
 	 * allowed under FIPS. Since the validation is not protecting against anything since the
 	 * private/public keys are well known and documented in MS-RDPBCGR section 5.3.3.1, we are not
 	 * gaining any security by using MD5 for signature comparison. Rather then use MD5
-	 * here we just dont do the validation to avoid its use. Historically, freerdp has been ignoring
+	 * here we just don't do the validation to avoid its use. Historically, freerdp has been ignoring
 	 * a failed validation anyways. */
 #if defined(CERT_VALIDATE_MD5)
 
@@ -1047,30 +1047,6 @@ static BOOL certificate_read_server_x509_certificate_chain(rdpCertificate* cert,
 	}
 
 	return update_x509_from_info(cert);
-}
-
-static BOOL certificate_write_server_x509_certificate_chain(const rdpCertificate* certificate,
-                                                            wStream* s)
-{
-	UINT32 numCertBlobs = 0;
-
-	WINPR_ASSERT(certificate);
-	WINPR_ASSERT(s);
-
-	numCertBlobs = certificate->x509_cert_chain.count;
-
-	if (!Stream_EnsureRemainingCapacity(s, 4))
-		return FALSE;
-	Stream_Write_UINT32(s, numCertBlobs); /* numCertBlobs */
-
-	for (UINT32 i = 0; i < numCertBlobs; i++)
-	{
-		const rdpCertBlob* cert = &certificate->x509_cert_chain.array[i];
-		if (!cert_blob_write(cert, s))
-			return FALSE;
-	}
-
-	return TRUE;
 }
 
 /**
@@ -1483,7 +1459,13 @@ static BOOL bio_read_pem(BIO* bio, char** ppem, size_t* plength)
 			break;
 		length += blocksize;
 	}
-	pem[offset] = '\0';
+
+	if (pem)
+	{
+		if (offset >= length)
+			goto fail;
+		pem[offset] = '\0';
+	}
 	*ppem = pem;
 	if (plength)
 		*plength = offset;

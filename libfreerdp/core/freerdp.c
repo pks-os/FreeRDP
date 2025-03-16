@@ -299,6 +299,7 @@ freerdp_connect_finally:
 	return status;
 }
 
+#if !defined(WITHOUT_FREERDP_3x_DEPRECATED)
 BOOL freerdp_abort_connect(freerdp* instance)
 {
 	if (!instance)
@@ -306,6 +307,7 @@ BOOL freerdp_abort_connect(freerdp* instance)
 
 	return freerdp_abort_connect_context(instance->context);
 }
+#endif
 
 BOOL freerdp_abort_connect_context(rdpContext* context)
 {
@@ -317,8 +319,13 @@ BOOL freerdp_abort_connect_context(rdpContext* context)
 	/* Try to send a [MS-RDPBCGR] 1.3.1.4.1 User-Initiated on Client PDU, we don't care about
 	 * success */
 	if (context->rdp && context->rdp->mcs)
-		(void)mcs_send_disconnect_provider_ultimatum(context->rdp->mcs,
-		                                             Disconnect_Ultimatum_user_requested);
+	{
+		if (!context->ServerMode)
+		{
+			(void)mcs_send_disconnect_provider_ultimatum(context->rdp->mcs,
+			                                             Disconnect_Ultimatum_user_requested);
+		}
+	}
 	return utils_abort_connect(context->rdp);
 }
 
@@ -631,11 +638,13 @@ BOOL freerdp_disconnect(freerdp* instance)
 	return rc;
 }
 
+#if !defined(WITHOUT_FREERDP_3x_DEPRECATED)
 BOOL freerdp_disconnect_before_reconnect(freerdp* instance)
 {
 	WINPR_ASSERT(instance);
 	return freerdp_disconnect_before_reconnect_context(instance->context);
 }
+#endif
 
 BOOL freerdp_disconnect_before_reconnect_context(rdpContext* context)
 {
@@ -664,6 +673,7 @@ BOOL freerdp_reconnect(freerdp* instance)
 	return rdp_client_reconnect(rdp);
 }
 
+#if !defined(WITHOUT_FREERDP_3x_DEPRECATED)
 BOOL freerdp_shall_disconnect(freerdp* instance)
 {
 	if (!instance)
@@ -671,6 +681,7 @@ BOOL freerdp_shall_disconnect(freerdp* instance)
 
 	return freerdp_shall_disconnect_context(instance->context);
 }
+#endif
 
 BOOL freerdp_shall_disconnect_context(const rdpContext* context)
 {
