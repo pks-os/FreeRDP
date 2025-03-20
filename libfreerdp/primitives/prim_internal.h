@@ -229,37 +229,37 @@ static INLINE BYTE CONDITIONAL_CLIP(INT32 in, BYTE original)
  */
 static INLINE INT32 C(INT32 Y)
 {
-	return (Y)-0L;
+	return (Y)-0;
 }
 
 static INLINE INT32 D(INT32 U)
 {
-	return (U)-128L;
+	return (U)-128;
 }
 
 static INLINE INT32 E(INT32 V)
 {
-	return (V)-128L;
+	return (V)-128;
 }
 
 static INLINE BYTE YUV2R(INT32 Y, INT32 U, INT32 V)
 {
-	const INT32 r = (256L * C(Y) + 0L * D(U) + 403L * E(V));
-	const INT32 r8 = r >> 8L;
+	const INT32 r = (256 * C(Y) + 0 * D(U) + 403 * E(V));
+	const INT32 r8 = r >> 8;
 	return CLIP(r8);
 }
 
 static INLINE BYTE YUV2G(INT32 Y, INT32 U, INT32 V)
 {
-	const INT32 g = (256L * C(Y) - 48L * D(U) - 120L * E(V));
-	const INT32 g8 = g >> 8L;
+	const INT32 g = (256 * C(Y) - 48 * D(U) - 120 * E(V));
+	const INT32 g8 = g >> 8;
 	return CLIP(g8);
 }
 
 static INLINE BYTE YUV2B(INT32 Y, INT32 U, INT32 V)
 {
-	const INT32 b = (256L * C(Y) + 475L * D(U) + 0L * E(V));
-	const INT32 b8 = b >> 8L;
+	const INT32 b = (256 * C(Y) + 475 * D(U) + 0 * E(V));
+	const INT32 b8 = b >> 8;
 	return CLIP(b8);
 }
 
@@ -284,6 +284,17 @@ static INLINE BYTE RGB2V(INT32 R, INT32 G, INT32 B)
 {
 	const INT32 val = (((128 * R - 116 * G - 12 * B) >> 8) + 128);
 	return WINPR_ASSERTING_INT_CAST(BYTE, val);
+}
+
+static inline BYTE* writeYUVPixel(BYTE* dst, UINT32 DstFormat, INT32 y, INT32 u, INT32 v,
+                                  fkt_writePixel fkt)
+{
+	WINPR_ASSERT(fkt);
+	const BYTE r = YUV2R(y, u, v);
+	const BYTE g = YUV2G(y, u, v);
+	const BYTE b = YUV2B(y, u, v);
+	const DWORD formatSize = FreeRDPGetBytesPerPixel(DstFormat);
+	return fkt(dst, formatSize, DstFormat, r, g, b, 0);
 }
 
 FREERDP_LOCAL void general_RGBToAVC444YUV_BGRX_DOUBLE_ROW(

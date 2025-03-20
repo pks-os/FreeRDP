@@ -1,8 +1,8 @@
 /**
  * FreeRDP: A Remote Desktop Protocol Implementation
- * X11 Graphical Objects
  *
- * Copyright 2011 Marc-Andre Moreau <marcandre.moreau@gmail.com>
+ * Copyright 2025 Armin Novak <anovak@thincast.com>
+ * Copyright 2025 Thincast Technologies GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,27 @@
  * limitations under the License.
  */
 
-#ifndef FREERDP_CLIENT_X11_GRAPHICS_H
-#define FREERDP_CLIENT_X11_GRAPHICS_H
+#pragma once
 
-#include "xf_client.h"
-#include "xfreerdp.h"
+#include <freerdp/server/shadow.h>
 
-BOOL xf_register_pointer(rdpGraphics* graphics);
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-BOOL xf_decode_color(xfContext* xfc, UINT32 srcColor, XColor* color);
-UINT32 xf_get_local_color_format(xfContext* xfc, BOOL aligned);
+	typedef struct sample_shadow_subsystem sampleShadowSubsystem;
 
-BOOL xf_pointer_update_scale(xfContext* xfc);
+	struct sample_shadow_subsystem
+	{
+		rdpShadowSubsystem base;
 
-#endif /* FREERDP_CLIENT_X11_GRAPHICS_H */
+		/* Additional platform specific stuff goes here */
+	};
+
+	FREERDP_API const char* ShadowSubsystemName(void);
+	FREERDP_API int ShadowSubsystemEntry(RDP_SHADOW_ENTRY_POINTS* pEntryPoints);
+
+#ifdef __cplusplus
+}
+#endif

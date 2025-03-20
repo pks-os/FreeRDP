@@ -92,12 +92,17 @@ set(MODULE_NAME "freerdp-shadow-subsystem")
 
 set(SRCS shadow_subsystem_builtin.c)
 
-if(WIN32)
-  add_subdirectory(Win)
-elseif(NOT APPLE)
-  add_subdirectory(X11)
-elseif(APPLE AND NOT IOS)
-  add_subdirectory(Mac)
+option(WITH_SHADOW_SUBSYSTEM "Build actual shadow platform subsystem implementation" ON)
+if(WITH_SHADOW_SUBSYSTEM)
+  if(WIN32)
+    add_subdirectory(Win)
+  elseif(NOT APPLE)
+    add_subdirectory(X11)
+  elseif(APPLE AND NOT IOS)
+    add_subdirectory(Mac)
+  endif()
+else()
+  add_subdirectory(Sample)
 endif()
 
 addtargetwithresourcefile(${MODULE_NAME} FALSE "${FREERDP_VERSION}" SRCS)
@@ -119,17 +124,10 @@ set_property(TARGET ${MODULE_NAME} PROPERTY FOLDER "Server/shadow")
 
 # command-line executable
 
-set(MODULE_NAME "freerdp-shadow-cli")
-
-set(SRCS shadow.c)
-
-addtargetwithresourcefile(${MODULE_NAME} TRUE "${FREERDP_VERSION}" SRCS)
-
-list(APPEND LIBS freerdp-shadow-subsystem freerdp-shadow freerdp winpr)
-
-target_link_libraries(${MODULE_NAME} PRIVATE ${LIBS})
-
-install(TARGETS ${MODULE_NAME} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT server)
+option(WITH_SERVER_SHADOW_CLI "Build shadow server cli tool" ON)
+if(WITH_SERVER_SHADOW_CLI)
+  add_subdirectory(cli)
+endif()
 
 set_property(TARGET ${MODULE_NAME} PROPERTY FOLDER "Server/shadow")
 
@@ -138,8 +136,6 @@ cleaning_configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/freerdp-shadow.pc.in
   ${CMAKE_CURRENT_BINARY_DIR}/freerdp-shadow${FREERDP_VERSION_MAJOR}.pc @ONLY
 )
-
-generate_and_install_freerdp_man_from_template(${MODULE_NAME} "1" "${FREERDP_API_VERSION}")
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/freerdp-shadow${FREERDP_VERSION_MAJOR}.pc
         DESTINATION ${PKG_CONFIG_PC_INSTALL_DIR}
